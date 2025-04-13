@@ -1,0 +1,66 @@
+import pandas as pd
+from fpdf import FPDF
+
+csv_path = r"E:\pdf\Cleaned_Crime_Incidents_2024.csv"
+pdf_path = r"E:\pdf\Cleaned_Crime_Incidents_2024.pdf"
+
+try:
+    df = pd.read_csv(csv_path)
+except Exception as e:
+    print(f"Error reading CSV file: {e}")
+    exit(1)
+
+columns_to_include = ['REPORT_DAT', 'OFFENSE', 'SHIFT', 'METHOD', 'BLOCK', 'DISTRICT']
+missing_columns = [col for col in columns_to_include if col not in df.columns]
+if missing_columns
+print(f"Missing columns in the CSV file: {', '.join(missing_columns)}")
+exit(1)
+df = df[columns_to_include]
+
+df['REPORT_DAT'] = pd.to_datetime(df['REPORT_DAT'], errors='coerce').dt.date
+
+class PDF(FPDF):
+    def header(self):
+        self.set_font("Arial", 'B', 14)
+self.cell(0, 10, "Crime Incidents 2024 - Clean Report", ln=True, align='C')
+self.ln(5)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Arial", "I", 8)
+        self.cell(0, 10, f"Page {self.page_no()}", align="C")
+
+pdf = PDF(orientation='L', unit='mm', format='A4')
+pdf.set_auto_page_break(auto=True, margin=15)
+pdf.add_page()
+
+col_widths = [30, 50, 25, 30, 80, 25]
+row_height = 9
+
+pdf.set_font("Arial", 'B', 10)
+pdf.set_fill_color(200, 230, 255)
+for i, col in enumerate(columns_to_include):
+    pdf.cell(col_widths[i], row_height, col, border=1, fill=True, align='C')
+pdf.ln(row_height)
+
+
+pdf.set_font("Arial", '', 9)
+fill = False
+
+for _, row in df.iterrows():
+    pdf.set_fill_color(245, 245, 245) if fill else pdf.set_fill_color(255, 255, 255)
+    for i, item in enumerate(row):
+        text = str(item)
+        if len(text) > 50:
+            text = text[:47] + "."
+pdf.cell(col_widths[i], row_height, text, border=1, fill=fill)
+    
+    pdf.ln(row_height)
+    fill = not fill  # Toggle row fill color
+
+try:
+    pdf.output(pdf_path)
+    print(f"PDF saved to: {pdf_path}")
+except Exception as e:
+    print(f"Error saving PDF: {e}")
+    exit(1)
